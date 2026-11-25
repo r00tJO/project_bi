@@ -31,6 +31,7 @@ export function stats(rows: Row[], key: string | null) {
   const s = [...v].sort((a, b) => a - b);
   const median = count ? (count % 2 ? s[(count - 1) / 2] : (s[count / 2 - 1] + s[count / 2]) / 2) : 0;
   const sd = Math.sqrt(safeDiv(v.reduce((a, b) => a + (b - avg) ** 2, 0), count));
+
   return { rows: rows.length, count, sum, avg, median, sd, min: count ? s[0] : 0, max: count ? s[count - 1] : 0 };
 }
 
@@ -46,7 +47,8 @@ export function trend(rows: Row[], dateKey: string | null, measure: string | nul
   if (!pts.length) return [];
   const lo = pts.reduce((a, p) => Math.min(a, p[0]), Infinity);
   const hi = pts.reduce((a, p) => Math.max(a, p[0]), -Infinity);
-  const len = (hi - lo) / 864e5 > 92 ? 7 : 10; // month vs day buckets
+  const days = (hi - lo) / 864e5;
+  const len = days > 730 ? 4 : days > 92 ? 7 : 10; // year / month / day buckets
   const m = new Map<string, { sum: number; n: number }>();
   for (const [t, v] of pts) {
     const k = new Date(t).toISOString().slice(0, len);

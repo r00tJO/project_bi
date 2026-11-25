@@ -17,6 +17,11 @@ const defaults = (ds: Dataset): Selection => ({
   measure: firstOf(ds, "number"), dimension: firstOf(ds, "category"), dateKey: firstOf(ds, "date"), agg: "sum",
 });
 
+// Regions and income groups (World, High income, OECD members...) are not countries
+const AGG = /\b(world|income|IDA|IBRD|OECD|euro area|european union|small states|least developed|indebted|demographic|dividend|excluding|Middle East|East Asia|South Asia|Latin America|North America|Sub-Saharan|Europe & Central Asia|Central Europe|Africa Eastern|Africa Western|Caribbean)\b/i;
+const entityKey = (ds: Dataset | null) =>
+  ds?.columns.find((c) => c.kind === "category" && /^(country|nation|economy)( name)?$/i.test(c.key))?.key ?? null;
+
 function Panel({ title, sub, children, wide }: { title: string; sub?: string; children: React.ReactNode; wide?: boolean }) {
   return (
     <section className={`card panel ${wide ? "wide" : ""}`}>
@@ -46,13 +51,26 @@ function App() {
   const [ds, setDs] = useState<Dataset | null>(null);
   const [sel, setSel] = useState<Selection>({ measure: null, dimension: null, dateKey: null, agg: "sum" });
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const [base, setBase] = useState<Filters>(NO_FILTERS);
+  const [countriesOnly, setCountriesOnly] = useState(false);
   const [status, setStatus] = useState<"loading" | "ready" | "empty">("loading");
   const [error, setError] = useState("");
 
   const load = useCallback((text: string, name: string) => {
     try {
       const d = buildDataset(text, name);
-      setDs(d); setSel(defaults(d)); setFilters(NO_FILTERS); setError(""); setStatus("ready");
+      // pick one indicator by default so different units are never added together
+      const pick = d.columns.find(
+        (c) => c.kind === "category" && c.options.length > 1 && c.options.length <= 8 && /indicator|series|metric|measure/i.test(c.key),
+      );
+      const start: Filters = pick ? { ...NO_FILTERS, cats: { [pick.key]: pick.options[0] } } : NO_FILTERS;
+      setDs(d);
+      setSel({ ...defaults(d), agg: pick ? "avg" : "sum" });
+      setBase(start);
+      setFilters(start);
+      setCountriesOnly(!!entityKey(d));
+      setError("");
+      setStatus("ready");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not read this file.");
       setStatus((s) => (s === "loading" ? "empty" : s));
@@ -67,7 +85,13 @@ function App() {
   }, [load]);
 
   const onFile = (f: File) => f.text().then((t) => load(t, f.name));
-  const rows = useMemo(() => (ds ? applyFilters(ds.rows, filters, sel.dateKey) : []), [ds, filters, sel.dateKey]);
+  const eKey = useMemo(() => entityKey(ds), [ds]);
+  const rows = useMemo(() => {
+    if (!ds) return [];
+    const r = applyFilters(ds.rows, filters, sel.dateKey);
+    return countriesOnly && eKey ? r.filter((x) => !AGG.test(String(x[eKey] ?? ""))) : r;
+  }, [ds, filters, sel.dateKey, countriesOnly, eKey]);
+
   const m = sel.measure ? label(sel.measure) : "Records";
   const trendData = useMemo(() => trend(rows, sel.dateKey, sel.measure, sel.agg), [rows, sel]);
   const groups = useMemo(() => groupBy(rows, sel.dimension, sel.measure, sel.agg), [rows, sel]);
@@ -97,7 +121,14 @@ function App() {
     body = (
       <>
         <FilterBar ds={ds} filters={filters} sel={sel} total={ds.rows.length} shown={rows.length}
-          onFilters={setFilters} onSel={setSel} onReset={() => setFilters(NO_FILTERS)} />
+          onFilters={setFilters} onSel={setSel}
+          onReset={() => { setFilters(base); setCountriesOnly(!!eKey); }} />
+        {eKey && (
+          <label className="toggle">
+            <input type="checkbox" checked={countriesOnly} onChange={(e) => setCountriesOnly(e.target.checked)} />
+            Countries only (hide regions and income groups)
+          </label>
+        )}
         {activePage === "Dashboard" && (
           <>
             <Kpis rows={rows} sel={sel} />
