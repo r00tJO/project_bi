@@ -1,29 +1,37 @@
 
+import { useState } from "react";
+import Sidebar from "./components/Sidebar";
+
 function App() {
+
+  const [activePage, setActivePage] = useState("Dashboard");
+
   return (
-    <div className="app">
-      <header className="header">
-        <h1>BI Analytics</h1>
-        <span>Business Intelligence Platform</span>
-      </header>
+    <div className="app-layout">
 
-      <main className="main">
-        <div className="welcome-card">
-          <h2>Welcome to BI Analytics</h2>
+      <Sidebar
+        activePage={activePage}
+        onNavigate={setActivePage}
+      />
+
+      <main className="main-content">
+
+        <header className="top-header">
+          <h2>{activePage}</h2>
+          <span>Welcome to BI Analytics</span>
+        </header>
+
+        <section className="page-content">
+          <h1>{activePage}</h1>
+
           <p>
-            Analyze your data, discover insights,
-            and make better business decisions.
+            Welcome to your Business Intelligence
+            and Data Analytics platform.
           </p>
+        </section>
 
-          <button>
-            Explore Dashboard
-          </button>
-        </div>
       </main>
 
-      <footer className="footer">
-        BI Analytics © 2026
-      </footer>
     </div>
   );
 }
