@@ -1,2 +1,2 @@
 # project_bi
-market data forecasting
+project to display co2 stats
