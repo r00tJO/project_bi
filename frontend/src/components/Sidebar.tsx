@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   ChartNoAxesCombined,
@@ -7,8 +6,7 @@ import {
   Settings,
   ChevronRight,
   User
-} from "lucide-react";
-
+} from "lucide-react";  
 interface SidebarProps {
   activePage: string;
   onNavigate: (page: string) => void;
