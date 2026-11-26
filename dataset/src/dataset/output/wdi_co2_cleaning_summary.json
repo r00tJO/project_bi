@@ -1,0 +1,11 @@
+{
+  "source_rows": 398468,
+  "co2_source_rows": 1064,
+  "co2_indicators": 4,
+  "country_codes_including_aggregates": 266,
+  "visualization_observations": 21622,
+  "modeling_rows_including_missing_targets": 43428,
+  "interpolated_values": 8,
+  "year_min": 1970,
+  "year_max": 2025
+}

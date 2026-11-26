@@ -1,0 +1,5 @@
+Indicator Code,Indicator Name,Observations,Countries,First_Year,Last_Year,Missing_Values
+EN.GHG.CO2.ZG.AR5,Carbon dioxide (CO2) emissions (total) excluding LULUCF (% change from 1990),8466,266,1960,2025,9090
+NY.ADJ.DCO2.CD,Adjusted savings: carbon dioxide damage (current US$),6864,266,1960,2025,10692
+NY.ADJ.DCO2.GN.ZS,Adjusted savings: carbon dioxide damage (% of GNI),6082,266,1960,2025,11474
+IC.FRM.CO2.ZS,Firms monitoring own CO2 emissions (% of firms),210,266,1960,2025,17346
